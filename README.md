@@ -8,9 +8,9 @@ Nothing just a college student bored in first summer vacation. Continuously both
     `pyinstaller -F ytmusic.py --add-file=~/path/to/loacles/folder:ytmusicapi/locales`. 
 
 Find the locales path with 
-      `import ytmusicapi
-      import os
-      print(os.path.dirname(ytmusicapi.__file__))`
+      `import ytmusicapi`
+      `import os`
+      `print(os.path.dirname(ytmusicapi.__file__))`
 Place the binary file in the same folder as the C binary file. 
 
 The downloaded songs will be in opus format (default for youtube music), 133kbps bitrate and 48kHz sample rate. 
