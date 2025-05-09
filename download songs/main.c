@@ -9,30 +9,30 @@ void search_and_download() {
     char outname[MAX_LINE];
     int name = 0;
     int c,count = 0;
-    system("./ytmusic");
+    system("./ytmusic");  // run the python binary
     FILE *file = fopen(".temp","r");
-    if (!file) {
-        perror("Failed to open input file");
+    if (!file) {  
+        perror("Failed to open input file");  // check file status, return if error
         return;
     }
-    if (!fgets(outname, sizeof(outname), file)) {
+    if (!fgets(outname, sizeof(outname), file)) { 
         fprintf(stderr, "Error: Failed to read the song name.\n");
         fclose(file);
         return;
     }
-    outname[strcspn(outname, "\n")] = '\0';
+    outname[strcspn(outname, "\n")] = '\0';  // add the null terminator at the new line character position
     if (!fgets(buffer, sizeof(buffer), file)) {
         fprintf(stderr, "Error: Failed to read the YouTube Music ID.\n");
         fclose(file);
         return;
     }
     fclose(file);
-    system("rm .temp");
+    system("rm .temp");  // cleanup the artifacts
     buffer[strcspn(buffer, "\n")] = '\0';
     char command[MAX_LINE];
-    snprintf(command, sizeof(command),"yt-dlp -f bestaudio -q --add-metadata -x -o '%s' https://music.youtube.com/watch?v=%s",outname ,buffer);
+    snprintf(command, sizeof(command),"yt-dlp -f bestaudio -q --add-metadata -x -o '%s' https://music.youtube.com/watch?v=%s",outname ,buffer);  // download the actual song, rename, extract audio, 
     int status = system(command);
-    if (status != 0){
+    if (status != 0){  // again check status of download
         printf("An error occured\n");
     }
     else{
