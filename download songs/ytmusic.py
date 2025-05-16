@@ -1,32 +1,41 @@
-from ytmusicapi import YTMusic
+import requests as re
 def search_song(query):
-    yt = YTMusic()
-    result = yt.search(query,filter = 'songs')  # get the songs from the given query
-    return result
+    query = "+".join(query.split(" "))
+    head = {"User-Agent": "Mozilla/5.0 Firefox/117.0"}
+    resp = re.get(f"https://music.youtube.com/search?q={query}", headers = head)
+    if resp.status_code != 200:
+        return []
+    read = resp.text.splitlines()[-1]
+    read = read[read.find("value")+1:]
+    read = read[read.find("YT")+2:]
+    name = ''
+    vidId = ''
+    read = read.split(r'\x22')
+    for i in range(len(read)):
+        if read[i].strip() == 'title' and not name:
+            for j in range(i, i + 20):
+                if read[j].strip() == ':':
+                    name = read[j+1].strip()
+                    break
+        elif read[i].strip() == 'videoId' and not vidId:
+            vidId = read[i+2].strip()
+        if name and vidId:
+            break
+    return [name, vidId]
 
 def main():
-    print("Enter the song you want to search: ", end='')
+    print("Enter the song and artist name: ", end='')
     query = input().strip()
     songs = search_song(query)
     while not songs:
         print("\nSearch returned nothing. Try again (0 to exit): ",end='')
         query = input().strip()
         if query == '0':
-            return 0  # no real use, thought i could read it in the C code but couldn't figure it out
+            return 0
         songs = search_song(query)
-    results = []
-    for i in range(min(5,len(songs))):  # get the top 5 song results and get user input 
-        print(str(i+1)+'.')
-        print("\t",songs[i]['title'])
-        print("\t",songs[i]['artists'][0]['name'])
-        print("\t",songs[i]['duration'])
-        results.append([songs[i]['title'],songs[i]["videoId"]])
-    print("Enter the song you want to download(1-5, 0 to abort): ",end='')
-    choice = int(input()) or 0
-    if choice == 0:
-        return 0  # again no real use
-    with open(".temp",'w') as f:  # communicate the song name and video-id to C code 
-        f.write(results[choice-1][0] + '\n')
-        f.write(results[choice-1][1])
+    with open(".temp",'w') as f:
+        f.write(songs[0] + '\n')
+        f.write(songs[1])
+
 
 main()
