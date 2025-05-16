@@ -7,7 +7,6 @@ def search_song(query):
     if resp.status_code != 200:
         return []
     read = resp.text.splitlines()[-1]
-    # read = read[read.find("value")+1:]
     read = read[read.find("YT")+2:]  # clean the useless part
     name = ''
     vidId = ''
