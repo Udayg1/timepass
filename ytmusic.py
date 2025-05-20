@@ -33,8 +33,7 @@ def main():
         if query == '0':
             return 0
         songs = search_song(query)
-    with open(".temp",'w') as f:
-        f.write(songs[0] + '\n')
-        f.write(songs[1])
-
-main()
+    # with open(".temp",'w') as f:
+    #     f.write(songs[0] + '\n')
+    #     f.write(songs[1])
+    return songs
