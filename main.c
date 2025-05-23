@@ -19,17 +19,14 @@ int main() {
             char buffer[128];
             printf("Enter the song and artist name: ");
             fgets(buffer, sizeof(buffer), stdin);
-            printf("kk");
             strip(buffer);
             size_t len = strlen(buffer);
-            printf("1. %zu",len);
             char **data = split(buffer,&len," ");
-            printf("2. %zu", strlen(data[0]));
             char *new = join(split(buffer, &len, " "), len, "+");
-            printf("3. %s", new);
             char * raw = page(new);
-            char** id = extract_vidId(raw);
-            ytdlp(id[0], id[1]);
+            // printf("%s",raw);
+            out result = extract_vidId(raw);
+            ytdlp(result.name, result.vidId);
         } else if (strcmp(choice, "n") == 0) {
             break;
         } else {

@@ -6,38 +6,35 @@
 #ifndef DEP
 char* slice(char* arr, int start, int end);
 
-char** split(char* arr, size_t *size, char* spl){
-    int cap = 128;
-    char** out = (char**) malloc(sizeof(char*) * cap);
-    char* temp = (char*)malloc(strlen(arr)+1);  // allocate memory enough to hold the complete string. (no spl char found in case)
-    int count_out = 0, count_temp = 0;
-    for (int i = 0; i < strlen(arr) - strlen(spl); i++){
-        if (strncmp(&arr[i], spl, strlen(spl)) == 0 || arr[i] == '\0'){
-            i = i + (strlen(spl)-1);
-            temp[count_temp] = '\0';
-            if (count_out + 1 > cap ){
-                cap *= 2;
-                char **temp_out = (char **) realloc(out, sizeof(char*) * cap);  // add memory if overflowing. 
-                if (temp_out == NULL){
-                    fprintf(stderr, "Memory allocation failed!\n");
-                    exit(1);
-                }
-                out = temp_out;
-            }
-            out[count_out] = (char*) malloc(count_temp + 1);  // allocate memory to each substring
-            strcpy(out[count_out], temp);
-            count_out += 1;
-            count_temp = 0;
-            memset(temp, 0, sizeof temp);  // set the buffer array to 0 
+char** split(const char* arr, size_t* size, const char* spl) {
+    int cap = 16;
+    char** out = malloc(cap * sizeof(char*));
+    size_t len = strlen(arr);
+    size_t delim_len = strlen(spl);
+    size_t count_out = 0;
+
+    const char* start = arr;
+    const char* pos = strstr(start, spl);
+
+    while (pos != NULL) {
+        size_t part_len = pos - start;
+        char* part = malloc(part_len + 1);
+        memcpy(part, start, part_len);
+        part[part_len] = '\0';
+        if (count_out + 1 >= cap) {
+            cap *= 2;
+            out = realloc(out, cap * sizeof(char*));
         }
-        else {         
-            temp[count_temp++] = arr[i];
-        }
+        out[count_out++] = part;
+        start = pos + delim_len;
+        pos = strstr(start, spl);
     }
-    // out[count_out] = (char*) malloc(count_temp + 1);  // append remainging 
-    // strcpy(out[count_out++], temp);
+
+    // Add the last part
+    char* part = strdup(start);
+    out[count_out++] = part;
+
     out[count_out] = NULL;
-    free(temp);
     *size = count_out;
     return out;
 }
