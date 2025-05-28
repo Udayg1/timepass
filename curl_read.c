@@ -83,7 +83,7 @@ out extract_vidId(char* file){
     // printf("%zu\n",org_len);
     char* temp = data[9];
     // printf("%s",temp);
-    size_t ytindex = find(temp, "YT");
+    size_t ytindex = find(temp, "Songs");
     temp = slice(temp, ytindex, strlen(temp));
     len = strlen(temp);
     data = split(temp, &len, "\\x22");
@@ -93,7 +93,7 @@ out extract_vidId(char* file){
             result.vidId = data[i+2];
             id = 1;
         }
-        if (strcmp(data[i], "title") == 0 && !nam){
+        if (strcmp(data[i], "musicResponsiveListItemFlexColumnRenderer") == 0 && !nam){
             for (int j = i; j < i+20; j++){
                 if (strcmp(data[j], ":") == 0 && !nam){
                     result.name = data[j+1];
