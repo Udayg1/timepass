@@ -26,6 +26,9 @@ int main() {
             char * raw = page(new);
             // printf("%s",raw);
             out result = extract_vidId(raw);
+            if (strcmp(result.name, "exit") == 0){
+                exit(1);
+            }
             ytdlp(result.name, result.vidId);
         } else if (strcmp(choice, "n") == 0) {
             break;
@@ -40,7 +43,7 @@ int main() {
 void ytdlp(const char *name, const char *vidId) {
     char command[MAX_LINE];
     snprintf(command, sizeof(command),
-             "yt-dlp -f bestaudio -q --add-metadata -x -o '%s.%%(ext)s' https://music.youtube.com/watch?v=%s",
+             "yt-dlp -f bestaudio -q --add-metadata -x -o \"%s.%%(ext)s\" https://music.youtube.com/watch?v=%s",
              name, vidId);
     int status = system(command);
     if (status != 0) {
