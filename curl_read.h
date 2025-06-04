@@ -4,6 +4,7 @@
 typedef struct {
     char *vidId;
     char *name;
+    char* artist;
 } out;
 char* hex_to_char(const char* str);
 char* page(const char* query);

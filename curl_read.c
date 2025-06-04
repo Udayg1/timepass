@@ -133,22 +133,26 @@ out extract_vidId(char* file){
     while (1) {
         if (strcmp(resp,"1") == 0){
             result.name = list[0][0];
+            result.artist = list[0][1];
             result.vidId = list[0][3]; 
             break;
         }
         else if(strcmp(resp,"2") == 0){
             result.name = list[1][0];
+            result.artist = list[1][1];
             result.vidId = list[1][3]; 
             break;
         }
         else if(strcmp(resp,"3") == 0){
             result.name = list[2][0];
+            result.artist = list[2][1];
             result.vidId = list[2][3]; 
             break;
         }
         else if(strcmp(resp,"0") == 0){ 
             result.name = "exit";
             result.vidId = " ";
+            result.artist = " ";
             break;
         }
         else {

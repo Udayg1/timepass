@@ -3,39 +3,48 @@
 #include <string.h>
 #include "dep.h"
 #include "curl_read.h"
+#include "play.h"
+#include<unistd.h>
 
 #define MAX_LINE 1024
 
+void queue_song();
 void ytdlp(const char *name, const char *vidId);
 
 int main() {
+    char option[10];
+    printf("Options: (p)ause, (r)esume, (h)alt, (s)kip, (a)dd a song -> ");
+    fgets(option, 10, stdin);
+    init_mpv();
     while (1) {
-        char choice[4];
-        printf("Start a new search? (y/n): ");
-        fgets(choice, sizeof(choice), stdin);
-        choice[strcspn(choice, "\n")] = 0;
-
-        if (strcmp(choice, "y") == 0) {
-            char buffer[128];
-            printf("Enter the song and artist name: ");
-            fgets(buffer, sizeof(buffer), stdin);
-            strip(buffer);
-            size_t len = strlen(buffer);
-            char **data = split(buffer,&len," ");
-            char *new = join(split(buffer, &len, " "), len, "+");
-            char * raw = page(new);
-            // printf("%s",raw);
-            out result = extract_vidId(raw);
-            if (strcmp(result.name, "exit") == 0){
-                exit(1);
-            }
-            ytdlp(result.name, result.vidId);
-        } else if (strcmp(choice, "n") == 0) {
-            break;
-        } else {
-            printf("Invalid choice. Please enter 'y' or 'n'.\n");
+        // if 
+        // next_song();
+        // is_playing();
+        strip(option);
+        if (strcmp("s", option) == 0 || strcmp("S", option) == 0){
+            next_song();
         }
+        else if(strcmp("p", option)== 0 || strcmp("P", option) == 0){
+            pause_song();
+        }
+        else if(strcmp("r", option)== 0 || strcmp("R", option) == 0){
+            resume_song();
+        }
+        else if(strcmp("h", option)== 0 || strcmp("H", option) == 0){
+            stop_song();
+            exit(0);
+        }
+        else if(strcmp(option, "a") == 0 || strcmp(option, "A") == 0){
+            queue_song();
+        }
+        else {
+            printf("Options: (p)ause, (r)esume, (h)alt, (s)kip, (a)dd a song -> ");
+            fgets(option, 10, stdin);
+        }
+        printf("Options: (p)ause, (r)esume, (h)alt, (s)kip, (a)dd a song -> ");
+        fgets(option, 10, stdin);
     }
+        
 
     return 0;
 }
@@ -50,5 +59,30 @@ void ytdlp(const char *name, const char *vidId) {
         printf("An error occurred\n");
     } else {
         printf("Song successfully downloaded\n");
+    }
+}
+
+void queue_song(){
+    char buf[128];
+    printf("Enter song and artist name (0 to exit): ");
+    fgets(buf, 128, stdin);
+    while(1){
+        strip(buf);
+        if (strlen(buf) == 0){
+            printf("Please enter a valid query -> ");
+            fgets(buf, sizeof(buf), stdin);
+        }
+        else if(strcmp (buf, "0") == 0){
+            exit(1);
+        }
+        else {
+            size_t len = strlen(buf);
+            char ** mid = split(buf, &len, " ");
+            char* query = join(mid, len, "+");
+            char* webpage = page(query);
+            out result = extract_vidId(webpage);
+            play_music(get_url(result.vidId));
+            break;
+        }
     }
 }
