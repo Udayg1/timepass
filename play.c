@@ -21,12 +21,7 @@ void init_mpv(){
 
 void play_music(const char* music_url) {
     char command[4096];
-    if (!is_playing()){
-        sprintf(command, "echo '{\"command\": [\"loadfile\", \"%s\", \"replace\"]}' | socat - /tmp/mpvsocket", music_url);
-    }
-    else {
-        sprintf(command, "echo '{\"command\": [\"loadfile\", \"%s\", \"append\"]}' | socat - /tmp/mpvsocket", music_url);
-    }
+    sprintf(command, "echo '{\"command\": [\"loadfile\", \"%s\", \"replace\"]}' | socat - /tmp/mpvsocket", music_url);
     FILE* pipe;
     pipe = popen(command, "r");
     usleep(10000);
@@ -119,4 +114,13 @@ int is_playing(){
     usleep(10000); 
     pclose(pipe);
     return strcmp(status, "true"); 
+}
+
+void add_songfile(char* name){
+    char command[1024];
+    sprintf(command, "echo '{\"command\": [\"loadfile\", \"./.tmp/%s.opus\", \"append\"]}' | socat - /tmp/mpvsocket", name);
+    FILE *pipe;
+    pipe = popen(command, "r");
+    usleep(1000);
+    pclose(pipe);
 }

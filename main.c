@@ -4,12 +4,15 @@
 #include "dep.h"
 #include "curl_read.h"
 #include "play.h"
-#include<unistd.h>
+#include <unistd.h>
+#include <pthread.h>
 
 #define MAX_LINE 1024
 
+out data;
+void cleanup(void);
 void queue_song();
-void ytdlp(const char *name, const char *vidId);
+void* ytdlp(void *args);
 
 int main() {
     char option[10];
@@ -32,6 +35,7 @@ int main() {
         }
         else if(strcmp("h", option)== 0 || strcmp("H", option) == 0){
             stop_song();
+            cleanup();
             break;
         }
         else if(strcmp(option, "a") == 0 || strcmp(option, "A") == 0){
@@ -48,17 +52,22 @@ int main() {
     return 0;
 }
 
-void ytdlp(const char *name, const char *vidId) {
+void* ytdlp(void *args) {
+    char *name = data.name,  *vidId = data.vidId;
     char command[MAX_LINE];
     snprintf(command, sizeof(command),
-             "yt-dlp -f bestaudio -q --add-metadata -x -o \"%s.%%(ext)s\" https://music.youtube.com/watch?v=%s",
+             "yt-dlp -f bestaudio -q --add-metadata -x --audio-format opus -o \"%s.%%(ext)s\" https://music.youtube.com/watch?v=%s",
              name, vidId);
     int status = system(command);
     if (status != 0) {
-        printf("An error occurred\n");
+        printf("An error occurred. Song not queued.\n");
     } else {
-        printf("Song successfully downloaded\n");
+        char move[1024];
+        system("mkdir -p .tmp");
+        sprintf(move, "mv \"%s\".opus ./.tmp/", name);
+        system(move);
     }
+    return NULL;
 }
 
 void queue_song(){
@@ -72,7 +81,7 @@ void queue_song(){
             fgets(buf, sizeof(buf), stdin);
         }
         else if(strcmp (buf, "0") == 0){
-            exit(1);
+            return;
         }
         else {
             size_t len = strlen(buf);
@@ -80,8 +89,25 @@ void queue_song(){
             char* query = join(mid, len, "+");
             char* webpage = page(query);
             out result = extract_vidId(webpage);
-            play_music(get_url(result.vidId));
-            break;
+
+            if (is_playing()){
+                pthread_t thread;
+                data.name = result.name;
+                data.artist = result.artist;
+                data.vidId = result.vidId;
+                pthread_create(&thread, NULL, ytdlp, NULL);
+                pthread_join(thread, NULL);
+                add_songfile(data.name);
+                break;
+            }
+            else {
+                play_music(get_url(result.vidId));
+                break;
+            }
         }
     }
+}
+
+void cleanup(void){
+    system("rm -rf ./.tmp");
 }

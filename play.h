@@ -8,3 +8,4 @@ void next_song();
 void add_song(out data);
 int is_playing();
 void init_mpv();
+void add_songfile(char* name);
