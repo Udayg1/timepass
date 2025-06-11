@@ -32,7 +32,7 @@ int main() {
         }
         else if(strcmp("h", option)== 0 || strcmp("H", option) == 0){
             stop_song();
-            exit(0);
+            break;
         }
         else if(strcmp(option, "a") == 0 || strcmp(option, "A") == 0){
             queue_song();
@@ -44,8 +44,7 @@ int main() {
         printf("Options: (p)ause, (r)esume, (h)alt, (s)kip, (a)dd a song -> ");
         fgets(option, 10, stdin);
     }
-        
-
+    system("clear");
     return 0;
 }
 
