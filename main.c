@@ -95,7 +95,7 @@ void queue_song(){
                 data.name = result.name;
                 data.artist = result.artist;
                 data.vidId = result.vidId;
-                pthread_create(&thread, NULL, ytdlp, NULL);
+                pthread_create(&thread, NULL, ytdlp, NULL);  // not very useful here. Simply calling the function would have done the trick. 
                 pthread_join(thread, NULL);
                 add_songfile(data.name);
                 break;
