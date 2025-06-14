@@ -15,13 +15,14 @@ int is_playing();
 
 void init_mpv(){
     // FILE* pipe;
-    system("mpv --no-video --really-quiet --no-input-default-bindings --no-input-terminal --idle --input-ipc-server=/tmp/mpvsocket &");
+    system("mkdir -p .tmp");
+    system("mpv --no-video --really-quiet --no-input-default-bindings --no-input-terminal --idle --input-ipc-server=./.tmp/mpvsocket &");
     // pclose(pipe);
 }
 
 void play_music(const char* music_url) {
     char command[4096];
-    sprintf(command, "echo '{\"command\": [\"loadfile\", \"%s\", \"replace\"]}' | socat - /tmp/mpvsocket", music_url);
+    sprintf(command, "echo '{\"command\": [\"loadfile\", \"%s\", \"replace\"]}' | socat - ./.tmp/mpvsocket", music_url);
     FILE* pipe;
     pipe = popen(command, "r");
     usleep(10000);
@@ -64,28 +65,28 @@ char* get_url(char* vidId){
 
 void next_song(){
     FILE* pipe;
-    pipe = popen("echo '{\"command\": [\"playlist-next\"]}' | socat - /tmp/mpvsocket","r");
+    pipe = popen("echo '{\"command\": [\"playlist-next\"]}' | socat - ./.tmp/mpvsocket","r");
     usleep(10000);
     pclose(pipe);
 }
 
 void stop_song(){
     FILE *pipe;
-    pipe = popen("echo '{ \"command\": [\"quit\"] }' | socat - /tmp/mpvsocket", "r");
+    pipe = popen("echo '{ \"command\": [\"quit\"] }' | socat - ./.tmp/mpvsocket", "r");
     usleep(10000);
     pclose(pipe);
 }
 
 void pause_song(){
     FILE* pipe;
-    pipe = popen("echo '{ \"command\": [\"set_property\", \"pause\", true] }' | socat - /tmp/mpvsocket","r");
+    pipe = popen("echo '{ \"command\": [\"set_property\", \"pause\", true] }' | socat - ./.tmp/mpvsocket","r");
     usleep(10000);
     pclose(pipe);
 }
 
 void resume_song(){
     FILE* pipe;
-    pipe = popen("echo '{ \"command\": [\"set_property\", \"pause\", false] }' | socat - /tmp/mpvsocket","r");
+    pipe = popen("echo '{ \"command\": [\"set_property\", \"pause\", false] }' | socat - ./.tmp/mpvsocket","r");
     usleep(10000);
     pclose(pipe);
 }
@@ -103,7 +104,7 @@ void resume_song(){
 int is_playing(){
     FILE *pipe;
     char tmp[100];
-    pipe = popen("echo '{ \"command\": [\"get_property\", \"idle-active\"] }' | socat - /tmp/mpvsocket","r");
+    pipe = popen("echo '{ \"command\": [\"get_property\", \"idle-active\"] }' | socat - ./.tmp/mpvsocket","r");
     if (!pipe){
         printf("Error opening pipe in check playing!");
         exit(1);
@@ -118,9 +119,26 @@ int is_playing(){
 
 void add_songfile(char* name){
     char command[1024];
-    sprintf(command, "echo '{\"command\": [\"loadfile\", \"./.tmp/%s.opus\", \"append\"]}' | socat - /tmp/mpvsocket", name);
+    sprintf(command, "echo '{\"command\": [\"loadfile\", \"./.tmp/%s.opus\", \"append\"]}' | socat - ./.tmp/mpvsocket", name);
     FILE *pipe;
     pipe = popen(command, "r");
-    usleep(1000);
+    usleep(10000);
+    pclose(pipe);
+}
+
+void volume(int value){
+    FILE* pipe;
+    char command[1024];
+    if (value >= 100){
+        sprintf(command, "echo '{ \"command\": [\"set_property\", \"volume\", 100] }' | socat - ./.tmp/mpvsocket");
+    }
+    else if (value < 0){
+        sprintf(command, "echo '{ \"command\": [\"set_property\", \"volume\", 0] }' | socat - ./.tmp/mpvsocket");
+    }
+    else {
+        sprintf(command, "echo '{ \"command\": [\"set_property\", \"volume\", %d] }' | socat - ./.tmp/mpvsocket", value);
+    }
+    pipe = popen(command, "r");
+    usleep(10000);
     pclose(pipe);
 }

@@ -16,7 +16,7 @@ void* ytdlp(void *args);
 
 int main() {
     char option[10];
-    printf("Options: (p)ause, (r)esume, (h)alt, (s)kip, (a)dd a song -> ");
+    printf("Options: (p)ause, (r)esume, (h)alt, (s)kip, set (v)olume#, (a)dd a song -> ");
     fgets(option, 10, stdin);
     init_mpv();
     while (1) {
@@ -27,25 +27,28 @@ int main() {
         if (strcmp("s", option) == 0 || strcmp("S", option) == 0){
             next_song();
         }
-        else if(strcmp("p", option)== 0 || strcmp("P", option) == 0){
+        else if (strcmp("p", option)== 0 || strcmp("P", option) == 0){
             pause_song();
         }
-        else if(strcmp("r", option)== 0 || strcmp("R", option) == 0){
+        else if (strcmp("r", option)== 0 || strcmp("R", option) == 0){
             resume_song();
         }
-        else if(strcmp("h", option)== 0 || strcmp("H", option) == 0){
+        else if (strcmp("h", option)== 0 || strcmp("H", option) == 0){
             stop_song();
             cleanup();
             break;
         }
-        else if(strcmp(option, "a") == 0 || strcmp(option, "A") == 0){
+        else if (strcmp(option, "a") == 0 || strcmp(option, "A") == 0){
             queue_song();
         }
+        else if (option[0] == 'V' || option[0] == 'v'){
+            volume(atoi(&option[1]));
+        }
         else {
-            printf("Options: (p)ause, (r)esume, (h)alt, (s)kip, (a)dd a song -> ");
+            printf("Options: (p)ause, (r)esume, (h)alt, (s)kip, set (v)olume#, (a)dd a song -> ");
             fgets(option, 10, stdin);
         }
-        printf("Options: (p)ause, (r)esume, (h)alt, (s)kip, (a)dd a song -> ");
+        printf("Options: (p)ause, (r)esume, (h)alt, (s)kip, set (v)olume#, (a)dd a song -> ");
         fgets(option, 10, stdin);
     }
     system("clear");
@@ -63,7 +66,6 @@ void* ytdlp(void *args) {
         printf("An error occurred. Song not queued.\n");
     } else {
         char move[1024];
-        system("mkdir -p .tmp");
         sprintf(move, "mv \"%s\".opus ./.tmp/", name);
         system(move);
     }
