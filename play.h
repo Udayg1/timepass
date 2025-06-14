@@ -10,3 +10,4 @@ int is_playing();
 void init_mpv();
 void add_songfile(char* name);
 void volume(int value);
+void cleanup();

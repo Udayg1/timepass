@@ -110,6 +110,3 @@ void queue_song(){
     }
 }
 
-void cleanup(void){
-    system("rm -rf ./.tmp");
-}

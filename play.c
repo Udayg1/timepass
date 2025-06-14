@@ -2,31 +2,30 @@
 #include <stdlib.h>
 #include <string.h>
 #include "dep.h"
-#include "curl_read.h"
 #include <unistd.h>
-
-out queue[100];
-int que_len = 0;
-int current_song = -1;
+#include <mpv/client.h>
 
 void stop_song();
 void reset_queue();
 int is_playing();
 
+struct mpv{
+    mpv_handle *hdl;
+}init ;
+
 void init_mpv(){
     // FILE* pipe;
     system("mkdir -p .tmp");
-    system("mpv --no-video --really-quiet --no-input-default-bindings --no-input-terminal --idle --input-ipc-server=./.tmp/mpvsocket &");
+    // system("mpv --no-video --really-quiet --no-input-default-bindings --no-input-terminal --idle --input-ipc-server=./.tmp/mpvsocket &");
     // pclose(pipe);
+    init.hdl = mpv_create();
+    mpv_initialize(init.hdl);
+    if (!init.hdl) return;
 }
 
 void play_music(const char* music_url) {
-    char command[4096];
-    sprintf(command, "echo '{\"command\": [\"loadfile\", \"%s\", \"replace\"]}' | socat - ./.tmp/mpvsocket", music_url);
-    FILE* pipe;
-    pipe = popen(command, "r");
-    usleep(10000);
-    pclose(pipe);
+    const char *cmd[] = {"loadfile", music_url, "replace", NULL};
+    mpv_command(init.hdl, cmd);
 }
 
 char* get_url(char* vidId){
@@ -64,31 +63,22 @@ char* get_url(char* vidId){
 // }
 
 void next_song(){
-    FILE* pipe;
-    pipe = popen("echo '{\"command\": [\"playlist-next\"]}' | socat - ./.tmp/mpvsocket","r");
-    usleep(10000);
-    pclose(pipe);
+    const char *cmd[] = {"playlist_next", NULL};
+    mpv_command(init.hdl, cmd);
 }
 
 void stop_song(){
-    FILE *pipe;
-    pipe = popen("echo '{ \"command\": [\"quit\"] }' | socat - ./.tmp/mpvsocket", "r");
-    usleep(10000);
-    pclose(pipe);
+    mpv_command_string(init.hdl, "quit");
 }
 
 void pause_song(){
-    FILE* pipe;
-    pipe = popen("echo '{ \"command\": [\"set_property\", \"pause\", true] }' | socat - ./.tmp/mpvsocket","r");
-    usleep(10000);
-    pclose(pipe);
+    int pause = 1;
+    mpv_set_property(init.hdl, "pause", MPV_FORMAT_FLAG, &pause);
 }
 
 void resume_song(){
-    FILE* pipe;
-    pipe = popen("echo '{ \"command\": [\"set_property\", \"pause\", false] }' | socat - ./.tmp/mpvsocket","r");
-    usleep(10000);
-    pclose(pipe);
+    int pause = 0;
+    mpv_set_property(init.hdl, "pause", MPV_FORMAT_FLAG, &pause);
 }
 
 // void currently_playing(int current_song){
@@ -102,43 +92,43 @@ void resume_song(){
 // }
 
 int is_playing(){
-    FILE *pipe;
-    char tmp[100];
-    pipe = popen("echo '{ \"command\": [\"get_property\", \"idle-active\"] }' | socat - ./.tmp/mpvsocket","r");
-    if (!pipe){
-        printf("Error opening pipe in check playing!");
-        exit(1);
-    }
-    fgets(tmp, sizeof(tmp), pipe);
-    char* status = slice(tmp, find(tmp, ":")+1, find(tmp, ","));
-    strip(status);
-    usleep(10000); 
-    pclose(pipe);
-    return strcmp(status, "true"); 
+    // FILE *pipe;
+    // char tmp[100];
+    // pipe = popen("echo '{ \"command\": [\"get_property\", \"idle-active\"] }' | socat - ./.tmp/mpvsocket","r");
+    // if (!pipe){
+    //     printf("Error opening pipe in check playing!");
+    //     exit(1);
+    // }
+    // fgets(tmp, sizeof(tmp), pipe);
+    // char* status = slice(tmp, find(tmp, ":")+1, find(tmp, ","));
+    // strip(status);
+    // usleep(10000); 
+    // pclose(pipe);
+    // return strcmp(status, "true"); 
+    int idle = 0;
+    mpv_get_property(init.hdl, "idle-active", MPV_FORMAT_FLAG, &idle);
+    return !idle;
 }
 
 void add_songfile(char* name){
-    char command[1024];
-    sprintf(command, "echo '{\"command\": [\"loadfile\", \"./.tmp/%s.opus\", \"append\"]}' | socat - ./.tmp/mpvsocket", name);
-    FILE *pipe;
-    pipe = popen(command, "r");
-    usleep(10000);
-    pclose(pipe);
+    strcat(name, ".opus");
+    const char *cmd[] = {"loadfile", name, "append", NULL};
+    mpv_command(init.hdl, cmd);
 }
 
-void volume(int value){
-    FILE* pipe;
-    char command[1024];
+void volume(int vol){
+    double value  = (double) vol;
     if (value >= 100){
-        sprintf(command, "echo '{ \"command\": [\"set_property\", \"volume\", 100] }' | socat - ./.tmp/mpvsocket");
-    }
+        mpv_set_property(init.hdl, "volume", MPV_FORMAT_DOUBLE, &(double){100.0});    }
     else if (value < 0){
-        sprintf(command, "echo '{ \"command\": [\"set_property\", \"volume\", 0] }' | socat - ./.tmp/mpvsocket");
+        mpv_set_property(init.hdl, "volume", MPV_FORMAT_DOUBLE, &(double){0.0});
     }
     else {
-        sprintf(command, "echo '{ \"command\": [\"set_property\", \"volume\", %d] }' | socat - ./.tmp/mpvsocket", value);
+        mpv_set_property(init.hdl, "volume", MPV_FORMAT_DOUBLE, &value);
     }
-    pipe = popen(command, "r");
-    usleep(10000);
-    pclose(pipe);
+}
+
+void cleanup(void){
+    system("rm -rf ./.tmp");
+    mpv_terminate_destroy(init.hdl);
 }
