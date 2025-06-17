@@ -87,6 +87,37 @@ out extract_vidId(char* file){
     char* temp = data[9];
     // printf("%s",temp);
     size_t ytindex = find(temp, "title\\x22:\\x7b\\x22runs\\x22:\\x5b\\x7b\\x22text\\x22:\\x22Songs\\x22\\x7d\\x5d\\x7d");
+    char* topres = slice(temp ,find(temp, "YT"), strlen(temp));
+    size_t toplen = strlen(topres);
+    char** top = split(topres, &toplen, "\\x22");
+    for (int i = 0; i < toplen; i++){
+        strip(top[i]);
+        if (strcmp(top[i], "videoId") == 0 && !id){
+            nee[3] = top[i+2];
+            id = 1;
+        }
+        else if(strcmp(top[i], "title") == 0 && !nam){
+            for (int j = i; j < i+20; j++) {
+                if (strcmp(top[j], ":") == 0){
+                    nee[0] = hex_to_char(top[j+1]);
+                    nam = 1;
+                    break;
+                }
+            }
+        }
+        else if (strcmp("•", top[i]) == 0 && !artist){
+            nee[1] = top[i+4];
+            artist = 1;
+        }
+        if (nam && artist && id){
+            break;
+        }
+    }
+    list[count++] = nee;
+    nee = (char**) malloc(4 * sizeof(char*));
+    nam = artist = plays = id = 0;
+    // printf("%s\n%s", list[0][0],list[0][1]);
+    printf("\n\t<Top Result>\nTitle:\t%s\nArtist:\t%s\n", list[0][0], list[0][1]);
     temp = slice(temp, ytindex, strlen(temp));
     len = strlen(temp);
     data = split(temp, &len, "\\x22");
@@ -117,42 +148,48 @@ out extract_vidId(char* file){
                 nam = artist = plays = id = 0;
             }
         }
-        if (count == 3){
+        if (count == 4){
             break;
         }
     }
-    for (int i = 0; i < count; i++){
-        printf("\n%d.\t%s\n", i+1, list[i][0]);
+    for (int i = 1; i < count; i++){
+        printf("\n%d.\t%s\n", i, list[i][0]);
         printf("Artist: %s\n", list[i][1]);
         printf("Plays: \t%s\n", list[i][2]);
     }
     char resp[10];
-    printf("\nEnter the choice (1-3, 0 abort): ");
+    printf("\nEnter the choice (1-3, 0 abort, press enter for top result): ");
     fgets(resp, sizeof(resp), stdin);
     strip(resp);
     while (1) {
         if (strcmp(resp,"1") == 0){
-            result.name = list[0][0];
-            result.artist = list[0][1];
-            result.vidId = list[0][3]; 
-            break;
-        }
-        else if(strcmp(resp,"2") == 0){
             result.name = list[1][0];
             result.artist = list[1][1];
             result.vidId = list[1][3]; 
             break;
         }
-        else if(strcmp(resp,"3") == 0){
+        else if(strcmp(resp,"2") == 0){
             result.name = list[2][0];
             result.artist = list[2][1];
             result.vidId = list[2][3]; 
+            break;
+        }
+        else if(strcmp(resp,"3") == 0){
+            result.name = list[3][0];
+            result.artist = list[3][1];
+            result.vidId = list[3][3]; 
             break;
         }
         else if(strcmp(resp,"0") == 0){ 
             result.name = "exit";
             result.vidId = " ";
             result.artist = " ";
+            break;
+        }
+        else if (strcmp("", resp) == 0){
+            result.name = list[0][0];
+            result.artist = list[0][1];
+            result.vidId = list[0][3];
             break;
         }
         else {

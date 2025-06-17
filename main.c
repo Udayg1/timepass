@@ -91,6 +91,9 @@ void queue_song(){
             char* query = join(mid, len, "+");
             char* webpage = page(query);
             out result = extract_vidId(webpage);
+            if (strcmp(result.name, "exit") == 0){
+                return;
+            }
 
             if (is_playing()){
                 pthread_t thread;
