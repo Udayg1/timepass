@@ -30,7 +30,8 @@ void play_music(const char* music_url) {
 
 char* get_url(char* vidId){
     char command[1024];
-    char* url =(char*) malloc(4096);
+    // printf("%s", vidId);
+    char* url =(char*) malloc(8192);
     if (!url){
         printf("Memory allocation failed!");
         exit(1);
@@ -63,7 +64,7 @@ char* get_url(char* vidId){
 // }
 
 void next_song(){
-    const char *cmd[] = {"playlist_next", NULL};
+    const char *cmd[] = {"playlist_next", "force",NULL};
     mpv_command(init.hdl, cmd);
 }
 
@@ -112,7 +113,9 @@ int is_playing(){
 
 void add_songfile(char* name){
     strcat(name, ".opus");
-    const char *cmd[] = {"loadfile", name, "append", NULL};
+    char final[128];
+    sprintf(final, "./.tmp/%s", name);
+    const char *cmd[] = {"loadfile", final, "append", NULL};
     mpv_command(init.hdl, cmd);
 }
 

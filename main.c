@@ -91,6 +91,13 @@ void queue_song(){
             char* query = join(mid, len, "+");
             char* webpage = page(query);
             out result = extract_vidId(webpage);
+            // printf("%s", result.vidId);
+            // free(webpage); // something wrong with freeing this
+            free(query); // ok!!
+            for (int i = 0; i < len; i++){  //this works as well!!
+                free(mid[i]);
+            }
+            free(mid);
             if (strcmp(result.name, "exit") == 0){
                 return;
             }
@@ -102,13 +109,18 @@ void queue_song(){
                 data.vidId = result.vidId;
                 pthread_create(&thread, NULL, ytdlp, NULL);  // not very useful here. Simply calling the function would have done the trick. 
                 pthread_join(thread, NULL);
+                strip(data.name);
                 add_songfile(data.name);
                 break;
             }
             else {
-                play_music(get_url(result.vidId));
+                char* url = get_url(result.vidId);
+                play_music(url);
+                free(url); 
                 break;
             }
+
+            free(result.name); free(result.artist); free(result.vidId);
         }
     }
 }

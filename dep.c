@@ -9,7 +9,7 @@ char* slice(char* arr, int start, int end);
 char** split(const char* arr, size_t* size, const char* spl) {
     int cap = 16;
     char** out = malloc(cap * sizeof(char*));
-    size_t len = strlen(arr);
+    // size_t len = strlen(arr);
     size_t delim_len = strlen(spl);
     size_t count_out = 0;
 
