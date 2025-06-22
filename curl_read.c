@@ -80,7 +80,7 @@ out extract_vidId(char* file){
     size_t org_len = strlen(file);
     size_t len = org_len;
     char** data = split(file,&org_len , "\n");
-    free(file);
+    // free(file);
     file = NULL;
     char** list[6];
     char** nee = (char**) malloc(4 * sizeof(char*));

@@ -92,7 +92,7 @@ void queue_song(){
             char* webpage = page(query);
             out result = extract_vidId(webpage);
             // printf("%s", result.vidId);
-            // free(webpage); // something wrong with freeing this
+            free(webpage); // already freed by extract_videoid function. thats why it didnt work. 
             free(query); // ok!!
             for (int i = 0; i < len; i++){  //this works as well!!
                 free(mid[i]);
