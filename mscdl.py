@@ -4,12 +4,12 @@ import mpv
 import os
 import base64
 import tempfile
+import json
 
 AGENT =  "Mozilla/5.0 (X11; Linux x86_64; rv:145.0) Gecko/20100101 Firefox/145.0"
 QUERYBASE = "https://maus.qqdl.site/search/?s="
 REFERER = "https://tidal.squid.wtf/"
 DOWNLOAD = "https://tidal.kinoplus.online/track/?"
-AUDIO = '/tmp/segmentedaudio.fifo'
 
 # ---- GLOBAL MPV PLAYER ----
 player = mpv.MPV(
@@ -96,8 +96,6 @@ def main():
             break
 
         data = getSearchResult(name)
-
-        # show up to 5 matches
         print("\nResults:")
         for i in range(min(len(data['data']["items"]), 5)):
             item = data['data']["items"][i]
@@ -110,17 +108,16 @@ def main():
         item = data['data']["items"][i]
         title = data['data']['items'][i]['title']
         artist = data['data']['items'][i]['artist']['name']
-
-        song = getSongUrl(item['id'],"HI_RES_LOSSLESS")
+        audioQuality = "LOSSLESS"
+        if "HIRES_LOSSLESS" in data['data']['items'][i]['mediaMetadata']['tags']:
+            audioQuality = "HI_RES_LOSSLESS"
+        song = getSongUrl(item['id'], audioQuality)
         decoded64 = decode_base64_manifest(song['data']['manifest'])
-        # print(decoded64[:200])
-        # url = decoded64[24].split(r'$Number$')
-        # segnum = int(decoded64[27][decoded64[27].find("\"")+1: decoded64[27].find("\"",decoded64[27].find("\"")+1)])+2
-        queue_mpd_xml_as_file(decoded64, title, artist)
-        # for i in range(segnum):
-        #     r = str(i).join(url)
-        #     queueSong(r, title, artist)
-
+        if decoded64.startswith("<?xml"):
+            queue_mpd_xml_as_file(decoded64, title, artist)
+        else:
+            directUrl = json.loads(decoded64).get('urls')
+            queueSong(directUrl[0], title, artist)
 try:
     main()
 except KeyboardInterrupt:
