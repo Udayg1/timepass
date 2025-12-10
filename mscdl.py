@@ -14,12 +14,7 @@ DOWNLOAD = "https://tidal.kinoplus.online/track/?"
 # ---- GLOBAL MPV PLAYER ----
 player = mpv.MPV(
     ytdl=True,
-    input_default_bindings=True,
-    input_vo_keyboard=True,
-    osc=True,
     hwdec="auto",
-    keep_open="yes",
-    msg_level="all=v",
     demuxer_lavf_o="protocol_whitelist=[file,https,http,tls,tcp,crypto,data]"
 )
 
@@ -79,14 +74,12 @@ def getSearchResult(query):
 def queueSong(url, title, artist):
     """Append a song to MPV playlist."""
     print(f"\nQueued: {title} - {artist}")
-    player.playlist_append(url)
-
-    if player.playlist_count == 1:
-        player.playlist_play_index(0)
+    if player.idle_active:
+        player.loadfile(url, "replace")
+    elif not player.pause and not player.idle_active:
+        player.loadfile(url, "append")
 
 def main():
-    print("MPV Music Client (queue + autoplay)")
-    print("-----------------------------------")
 
     while True:
         name = input("\nEnter song name (or q to quit): ")
